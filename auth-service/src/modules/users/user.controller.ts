@@ -10,6 +10,16 @@ import { verifyResetOtpSchema } from "../auth/password-reset/verify-reset-otp.sc
 import { resetPasswordSchema } from "../auth/password-reset/reset-password.schema.js";
 import { loginUserSchema } from "./validation/login-user.schema.js";
 import { JwtService } from "../../infrastructure/jwt/jwt.service.js";
+import type { AuthenticatedRequest } from "../auth/middleware/auth.middleware.js";
+import { updateProfileSchema } from "./validation/update-user.schema.js";
+import { createAddressSchema } from "./validation/create-address.schema.js";
+import { updateAddressSchema } from "./validation/update-address.schema.js";
+import { isValidObjectId } from "../../infrastructure/validation/object-id.js";
+import { getAuthenticatedUserId } from "../auth/middleware/required-authenticated-user.js";
+import { changePasswordSchema } from "./validation/change-password.schema.js";
+import { validateImageFile } from "../../infrastructure/upload/validate-image.js";
+import { updateUserStatusSchema } from "./validation/update-user-status.schema.js";
+
 
 const userRepository = new UserRepository();
 const otpService = new OtpService();
@@ -255,6 +265,345 @@ export class UserController {
             res.status(200).json({
                 message: "Login successful",
                 ...loginResult,
+            });
+        } catch (error) {
+            next(error);
+        }
+    }
+
+    async updateProfile(
+        req: AuthenticatedRequest,
+        res: Response,
+        next: NextFunction
+    ): Promise<void> {
+        try {
+            const userId = getAuthenticatedUserId(req);
+
+            const data = updateProfileSchema.parse(req.body);
+
+            const user =
+                await userService.updateProfile(
+                    userId,
+                    data
+                );
+
+            res.status(200).json({
+                message: "Profile updated successfully",
+                user,
+            });
+        } catch (error) {
+            next(error);
+        }
+    }
+
+    async getMyProfile(
+        req: AuthenticatedRequest,
+        res: Response,
+        next: NextFunction
+    ): Promise<void> {
+        try {
+            const userId = getAuthenticatedUserId(req);
+
+            const user =
+                await userService.getMyProfile(userId);
+
+            res.status(200).json({ user });
+        } catch (error) {
+            next(error);
+        }
+    }
+
+    async addAddress(
+        req: AuthenticatedRequest,
+        res: Response,
+        next: NextFunction
+    ): Promise<void> {
+        try {
+            const userId = getAuthenticatedUserId(req);
+
+            const data =
+                createAddressSchema.parse(req.body);
+
+            const user =
+                await userService.addAddress(
+                    userId,
+                    data
+                );
+
+            res.status(201).json({
+                message: "Address added successfully",
+                user,
+            });
+        } catch (error) {
+            next(error);
+        }
+    }
+
+    async getAddresses(
+        req: AuthenticatedRequest,
+        res: Response,
+        next: NextFunction
+    ): Promise<void> {
+        try {
+            const userId = getAuthenticatedUserId(req);
+
+            const addresses =
+                await userService.getAddresses(userId);
+
+            res.status(200).json({
+                addresses,
+            });
+        } catch (error) {
+            next(error);
+        }
+    }
+
+    async updateAddress(
+        req: AuthenticatedRequest,
+        res: Response,
+        next: NextFunction
+    ): Promise<void> {
+        try {
+            const userId = getAuthenticatedUserId(req);
+
+            const addressId = Array.isArray(req.params.addressId)
+                ? req.params.addressId[0]
+                : req.params.addressId;
+
+            if (!addressId) {
+                res.status(400).json({
+                    message: "Address ID is required",
+                });
+                return;
+            }
+
+            if (!isValidObjectId(addressId)) {
+                res.status(400).json({
+                    message: "Invalid address ID",
+                });
+                return;
+            }
+
+            const data =
+                updateAddressSchema.parse(req.body);
+
+            const user =
+                await userService.updateAddress(
+                    userId,
+                    addressId,
+                    data
+                );
+
+            res.status(200).json({
+                message: "Address updated successfully",
+                user,
+            });
+        } catch (error) {
+            next(error);
+        }
+    }
+
+
+    async deleteAddress(
+        req: AuthenticatedRequest,
+        res: Response,
+        next: NextFunction
+    ): Promise<void> {
+        try {
+            const userId = getAuthenticatedUserId(req);
+
+            const addressId = Array.isArray(req.params.addressId)
+                ? req.params.addressId[0]
+                : req.params.addressId;
+
+            if (!addressId) {
+                res.status(400).json({
+                    message: "Address ID is required",
+                });
+                return;
+            }
+
+            if (!isValidObjectId(addressId)) {
+                res.status(400).json({
+                    message: "Invalid address ID",
+                });
+                return;
+            }
+
+            const user =
+                await userService.deleteAddress(
+                    userId,
+                    addressId
+                );
+
+            res.status(200).json({
+                message: "Address deleted successfully",
+                user,
+            });
+        } catch (error) {
+            next(error);
+        }
+    }
+
+    async setDefaultAddress(
+        req: AuthenticatedRequest,
+        res: Response,
+        next: NextFunction
+    ): Promise<void> {
+        try {
+            const userId = getAuthenticatedUserId(req);
+
+            const addressId = Array.isArray(req.params.addressId)
+                ? req.params.addressId[0]
+                : req.params.addressId;
+
+            if (!addressId) {
+                res.status(400).json({
+                    message: "Address ID is required",
+                });
+                return;
+            }
+
+            if (!isValidObjectId(addressId)) {
+                res.status(400).json({
+                    message: "Invalid address ID",
+                });
+                return;
+            }
+
+            const user =
+                await userService.setDefaultAddress(
+                    userId,
+                    addressId
+                );
+
+            res.status(200).json({
+                message: "Default address updated successfully",
+                user,
+            });
+        } catch (error) {
+            next(error);
+        }
+    }
+
+    async changePassword(
+        req: AuthenticatedRequest,
+        res: Response,
+        next: NextFunction
+    ): Promise<void> {
+        try {
+            const userId = getAuthenticatedUserId(req);
+
+            const data = changePasswordSchema.parse(req.body);
+
+            await userService.changePassword(
+                userId,
+                data
+            );
+
+            res.status(200).json({
+                message: "Password changed successfully",
+            });
+        } catch (error) {
+            next(error);
+        }
+    }
+
+    async uploadProfilePicture(
+        req: AuthenticatedRequest,
+        res: Response,
+        next: NextFunction
+    ): Promise<void> {
+        try {
+            const userId = getAuthenticatedUserId(req);
+
+            if (!req.file) {
+                res.status(400).json({
+                    message: "Profile picture is required",
+                });
+                return;
+            }
+
+            const isValidImage = await validateImageFile(
+                req.file.path
+            );
+
+            if (!isValidImage) {
+                res.status(400).json({
+                    message: "Invalid image file",
+                });
+                return;
+            }
+
+            const profilePictureUrl =
+                `http://localhost:3001/uploads/profile-pictures/${req.file.filename}`;
+
+            const user = await userService.updateProfile(
+                userId,
+                {
+                    profilePicture: profilePictureUrl,
+                }
+            );
+
+            res.status(200).json({
+                message: "Profile picture uploaded successfully",
+                profilePicture: user.profilePicture,
+            });
+        } catch (error) {
+            next(error);
+        }
+    }
+    async updateUserStatus(
+        req: AuthenticatedRequest,
+        res: Response,
+        next: NextFunction
+    ): Promise<void> {
+        try {
+            const targetUserId = Array.isArray(req.params.id)
+                ? req.params.id[0]
+                : req.params.id;
+
+            if (!targetUserId) {
+                res.status(400).json({
+                    message: "User ID is required",
+                });
+                return;
+            }
+
+            const data = updateUserStatusSchema.parse(
+                req.body
+            );
+
+            const user =
+                await userService.updateUserStatus(
+                    targetUserId,
+                    data.isActive
+                );
+
+            res.status(200).json({
+                message: data.isActive
+                    ? "User activated successfully"
+                    : "User deactivated successfully",
+                user,
+            });
+        } catch (error) {
+            next(error);
+        }
+    }
+
+
+    async deleteMyAccount(
+        req: AuthenticatedRequest,
+        res: Response,
+        next: NextFunction
+    ): Promise<void> {
+        try {
+            const userId = getAuthenticatedUserId(req);
+
+            await userService.deleteMyAccount(userId);
+
+            res.status(200).json({
+                message: "Account deleted successfully",
             });
         } catch (error) {
             next(error);

@@ -29,3 +29,15 @@ export const otpVerificationRateLimiter = rateLimit({
         message: "Too many OTP verification attempts. Please try again later.",
     },
 });
+
+
+export const refreshRateLimiter = rateLimit({
+    windowMs: 15 * 60 * 1000,
+    limit: 20,
+    standardHeaders: "draft-8",
+    legacyHeaders: false,
+    message: {
+        message:
+            "Too many refresh attempts. Please try again later.",
+    },
+});

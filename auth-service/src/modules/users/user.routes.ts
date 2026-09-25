@@ -13,8 +13,10 @@ import { LogoutController } from "../auth/refresh-token/logout.controller.js";
 import {
     loginRateLimiter,
     otpRateLimiter,
-    otpVerificationRateLimiter
+    otpVerificationRateLimiter,
+    refreshRateLimiter
 } from "../../infrastructure/http/rate-limiters.js";
+import { profilePictureUpload } from "../../infrastructure/upload/multer.js";
 
 const router = Router();
 
@@ -46,18 +48,97 @@ router.get(
     }
 );
 
-router.get(
-    "/:id",
+router.patch(
+    "/me",
     authenticate,
-    (req, res) => {
-        userController.getUserById(req, res);
+    (req, res, next) => {
+        userController.updateProfile(
+            req,
+            res,
+            next
+        );
+    }
+);
+
+
+router.get(
+    "/me",
+    authenticate,
+    (req, res, next) => {
+        userController.getMyProfile(
+            req,
+            res,
+            next
+        );
     }
 );
 
 router.post(
+    "/me/addresses",
+    authenticate,
+    (req, res, next) => {
+        userController.addAddress(
+            req,
+            res,
+            next
+        );
+    }
+);
+
+router.get(
+    "/me/addresses",
+    authenticate,
+    (req, res, next) => {
+        userController.getAddresses(
+            req,
+            res,
+            next
+        );
+    }
+);
+
+router.patch(
+    "/me/addresses/:addressId",
+    authenticate,
+    (req, res, next) => {
+        userController.updateAddress(
+            req,
+            res,
+            next
+        );
+    }
+);
+router.delete(
+    "/me/addresses/:addressId",
+    authenticate,
+    (req, res, next) => {
+        userController.deleteAddress(
+            req,
+            res,
+            next
+        );
+    }
+);
+
+router.patch(
+    "/me/addresses/:addressId/default",
+    authenticate,
+    (req, res, next) => {
+        userController.setDefaultAddress(
+            req,
+            res,
+            next
+        );
+    }
+);
+router.post(
     "/refresh",
+    refreshRateLimiter,
     (req, res) => {
-        refreshTokenController.refresh(req, res);
+        refreshTokenController.refresh(
+            req,
+            res
+        );
     }
 );
 
@@ -84,6 +165,91 @@ router.post(
         userController.resendVerificationOtp(req, res, next);
     }
 );
+
+
+router.patch(
+    "/me/password",
+    authenticate,
+    (req, res, next) => {
+        userController.changePassword(
+            req,
+            res,
+            next
+        );
+    }
+);
+
+router.post(
+    "/me/profile-picture",
+    authenticate,
+    profilePictureUpload.single("profilePicture"),
+    (req, res, next) => {
+        userController.uploadProfilePicture(req, res, next);
+    }
+);
+
+router.patch(
+    "/:id/status",
+    authenticate,
+    requireRole("ADMIN"),
+    (req, res, next) => {
+        userController.updateUserStatus(
+            req,
+            res,
+            next
+        );
+    }
+);
+
+router.delete(
+    "/me",
+    authenticate,
+    (req, res, next) => {
+        userController.deleteMyAccount(
+            req,
+            res,
+            next
+        );
+    }
+);
+
+
+router.get(
+    "/sessions",
+    authenticate,
+    (req, res, next) => {
+        refreshTokenController.getSessions(
+            req,
+            res,
+            next
+        );
+    }
+);
+
+router.delete(
+    "/sessions/:sessionId",
+    authenticate,
+    (req, res, next) => {
+        refreshTokenController.revokeSession(
+            req,
+            res,
+            next
+        );
+    }
+);
+
+router.delete(
+    "/sessions",
+    authenticate,
+    (req, res, next) => {
+        refreshTokenController.revokeAllSessions(
+            req,
+            res,
+            next
+        );
+    }
+);
+
 
 router.post(
     "/forgot-password",

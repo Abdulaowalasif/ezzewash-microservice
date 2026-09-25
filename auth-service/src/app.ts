@@ -4,12 +4,28 @@ import { errorHandler } from "./infrastructure/http/error-handler.js";
 import { requestIdMiddleware } from "./infrastructure/http/request-id.middleware.js";
 import helmet from "helmet";
 import mongoose from "mongoose";
+import path from "node:path";
 import { corsMiddleware } from './infrastructure/http/cors.js';
 import { redisClient } from "./infrastructure/redis/redis.js";
+import swaggerUi from "swagger-ui-express";
+import swaggerSpec from "./infrastructure/config/swagger.js";
 
 export function createApp() {
     const app = express();
     const startedAt = Date.now();
+
+    app.use(
+        "/uploads",
+        express.static(
+            path.resolve("D:/ezzewash/uploads")
+        )
+    );
+
+    app.use(
+        "/api-docs",
+        swaggerUi.serve,
+        swaggerUi.setup(swaggerSpec)
+    );
 
     app.use(helmet());
     app.use(corsMiddleware);
@@ -17,6 +33,7 @@ export function createApp() {
     app.use(express.json({
         limit: "100kb"
     }));
+
 
     app.get("/health", (req, res) => {
         res.json({
@@ -27,6 +44,8 @@ export function createApp() {
             ),
         });
     });
+
+
     app.get("/ready", (_req, res) => {
         const mongoReady =
             mongoose.connection.readyState === 1;

@@ -1,5 +1,5 @@
 import bcrypt from "bcrypt";
-
+import crypto from "node:crypto";
 import { UserRepository } from "./user.repository.js";
 import type { User } from "./user.model.js";
 import type { RegisterUserDto } from "./dto/register-user.dto.js";
@@ -16,6 +16,10 @@ import {
 import type { LoginUserDto } from "./dto/login-user.dto.js";
 import { JwtService } from "../../infrastructure/jwt/jwt.service.js";
 import { AppError } from "../../infrastructure/http/app-error.js";
+import type { UpdateProfileInput } from "./validation/update-user.schema.js";
+import type { CreateAddressInput } from "./validation/create-address.schema.js";
+import type { UpdateAddressInput } from "./validation/update-address.schema.js";
+import type { ChangePasswordInput } from "./validation/change-password.schema.js";
 
 export class UserService {
     constructor(
@@ -253,7 +257,8 @@ export class UserService {
 
         await saveRefreshToken(
             refreshPayload.jti,
-            refreshPayload.userId
+            user._id.toString(),
+            crypto.randomUUID()
         );
 
         return {
@@ -262,4 +267,296 @@ export class UserService {
             refreshToken,
         };
     }
+
+    async updateProfile(
+        userId: string,
+        data: UpdateProfileInput
+    ): Promise<User> {
+        if (data.phone !== undefined) {
+            const existingUser =
+                await this.userRepository.findByPhone(
+                    data.phone
+                );
+
+            if (
+                existingUser &&
+                existingUser._id.toString() !== userId
+            ) {
+                throw new AppError(
+                    "Phone already exists",
+                    409
+                );
+            }
+        }
+
+        const user =
+            await this.userRepository.updateProfile(
+                userId,
+                data
+            );
+
+        if (!user) {
+            throw new AppError(
+                "User not found",
+                404
+            );
+        }
+
+        const userObject =
+            user.toObject();
+
+        delete (
+            userObject as Partial<User>
+        ).passwordHash;
+
+        return userObject;
+    }
+
+
+    async getMyProfile(
+        userId: string
+    ): Promise<User> {
+        const user =
+            await this.userRepository.findById(
+                userId
+            );
+
+        if (!user) {
+            throw new AppError(
+                "User not found",
+                404
+            );
+        }
+
+        const userObject =
+            user.toObject();
+
+        delete (
+            userObject as Partial<User>
+        ).passwordHash;
+
+        return userObject;
+    }
+
+    async addAddress(
+        userId: string,
+        data: CreateAddressInput
+    ): Promise<User> {
+        if (data.isDefault) {
+            await this.userRepository.clearDefaultAddress(
+                userId
+            );
+        }
+
+        const user =
+            await this.userRepository.addAddress(
+                userId,
+                data
+            );
+
+        if (!user) {
+            throw new AppError(
+                "User not found",
+                404
+            );
+        }
+
+        const userObject =
+            user.toObject();
+
+        delete (
+            userObject as Partial<User>
+        ).passwordHash;
+
+        return userObject;
+    }
+
+    async getAddresses(
+        userId: string
+    ): Promise<User["addresses"]> {
+        const addresses =
+            await this.userRepository.getAddresses(
+                userId
+            );
+
+        if (addresses === null) {
+            throw new AppError(
+                "User not found",
+                404
+            );
+        }
+
+        return addresses;
+    }
+
+    async updateAddress(
+        userId: string,
+        addressId: string,
+        data: UpdateAddressInput
+    ): Promise<User> {
+        if (data.isDefault === true) {
+            await this.userRepository.clearDefaultAddress(userId);
+        }
+
+        const user = await this.userRepository.updateAddress(
+            userId,
+            addressId,
+            data
+        );
+
+        if (!user) {
+            throw new AppError(
+                "User or address not found",
+                404
+            );
+        }
+
+        const userObject = user.toObject();
+
+        delete (userObject as Partial<User>).passwordHash;
+
+        return userObject;
+    }
+    async deleteAddress(
+        userId: string,
+        addressId: string
+    ): Promise<User> {
+        const user = await this.userRepository.deleteAddress(
+            userId,
+            addressId
+        );
+
+        if (!user) {
+            throw new AppError(
+                "User or address not found",
+                404
+            );
+        }
+
+        const userObject = user.toObject();
+
+        delete (userObject as Partial<User>).passwordHash;
+
+        return userObject;
+    }
+
+    async setDefaultAddress(
+        userId: string,
+        addressId: string
+    ): Promise<User> {
+        const user =
+            await this.userRepository.setDefaultAddress(
+                userId,
+                addressId
+            );
+
+        if (!user) {
+            throw new AppError(
+                "User or address not found",
+                404
+            );
+        }
+
+        const userObject = user.toObject();
+
+        delete (userObject as Partial<User>).passwordHash;
+
+        return userObject;
+    }
+
+    async changePassword(
+        userId: string,
+        data: ChangePasswordInput
+    ): Promise<void> {
+        const user =
+            await this.userRepository.findByIdWithPassword(
+                userId
+            );
+
+        if (!user) {
+            throw new AppError(
+                "User not found",
+                404
+            );
+        }
+
+        const passwordMatches =
+            await bcrypt.compare(
+                data.currentPassword,
+                user.passwordHash
+            );
+
+        if (!passwordMatches) {
+            throw new AppError(
+                "Current password is incorrect",
+                400
+            );
+        }
+
+        const passwordHash =
+            await bcrypt.hash(
+                data.newPassword,
+                12
+            );
+
+        await this.userRepository.updatePasswordById(
+            userId,
+            passwordHash
+        );
+        await deleteRefreshTokensForUser(userId);
+    }
+
+    async updateUserStatus(
+        userId: string,
+        isActive: boolean
+    ): Promise<User> {
+        const user =
+            await this.userRepository.updateUserStatus(
+                userId,
+                isActive
+            );
+
+        if (!user) {
+            throw new AppError(
+                "User not found",
+                404
+            );
+        }
+
+        if (!isActive) {
+            await deleteRefreshTokensForUser(
+                userId
+            );
+        }
+
+        const userObject =
+            user.toObject();
+
+        delete (
+            userObject as Partial<User>
+        ).passwordHash;
+
+        return userObject;
+    }
+
+    async deleteMyAccount(
+        userId: string
+    ): Promise<void> {
+        const user =
+            await this.userRepository.deleteById(
+                userId
+            );
+
+        if (!user) {
+            throw new AppError(
+                "User not found",
+                404
+            );
+        }
+
+        await deleteRefreshTokensForUser(
+            userId
+        );
+    }
+
 }

@@ -5,7 +5,15 @@ import {
     getRefreshToken,
     saveRefreshToken,
     deleteRefreshToken,
+    getRefreshTokensForUser,
+    deleteSessionForUser,
+    deleteRefreshTokensForUser,
+    getRevokedRefreshToken,
+    revokeRefreshToken,
 } from "./refresh-token.store.js";
+
+
+
 
 export class RefreshTokenService {
     constructor(
@@ -20,10 +28,30 @@ export class RefreshTokenService {
         const payload =
             this.jwtService.verifyRefreshToken(refreshToken);
 
-        const storedToken = await getRefreshToken(payload.jti);
+        const storedToken =
+            await getRefreshToken(payload.jti);
 
         if (!storedToken) {
-            throw new AppError("Refresh token is invalid or expired", 401);
+            const revokedToken =
+                await getRevokedRefreshToken(
+                    payload.jti
+                );
+
+            if (revokedToken) {
+                await deleteRefreshTokensForUser(
+                    revokedToken.userId
+                );
+
+                throw new AppError(
+                    "Refresh token reuse detected",
+                    401
+                );
+            }
+
+            throw new AppError(
+                "Refresh token is invalid or expired",
+                401
+            );
         }
 
         if (storedToken.userId !== payload.userId) {
@@ -42,8 +70,15 @@ export class RefreshTokenService {
             throw new AppError("Account is inactive", 403);
         }
 
-        // Invalidate the old refresh token
-        await deleteRefreshToken(payload.jti);
+        await revokeRefreshToken(
+            payload.jti,
+            payload.userId,
+            storedToken.sessionId
+        );
+
+        await deleteRefreshToken(
+            payload.jti
+        );
 
         const newAccessToken =
             this.jwtService.generateAccessToken({
@@ -63,7 +98,9 @@ export class RefreshTokenService {
 
         await saveRefreshToken(
             newRefreshPayload.jti,
-            newRefreshPayload.userId
+            payload.userId,
+            storedToken.sessionId,
+            storedToken.createdAt
         );
 
         return {
@@ -71,4 +108,48 @@ export class RefreshTokenService {
             refreshToken: newRefreshToken,
         };
     }
+
+
+    async getSessions(
+        userId: string
+    ): Promise<
+        Array<{
+            sessionId: string;
+            createdAt: string;
+        }>
+    > {
+        const sessions =
+            await getRefreshTokensForUser(userId);
+
+        return sessions.map((session) => ({
+            sessionId: session.sessionId,
+            createdAt: session.createdAt,
+        }));
+    }
+
+
+    async revokeSession(
+        userId: string,
+        sessionId: string
+    ): Promise<void> {
+        const deleted =
+            await deleteSessionForUser(
+                userId,
+                sessionId
+            );
+
+        if (!deleted) {
+            throw new AppError(
+                "Session not found",
+                404
+            );
+        }
+    }
+
+    async revokeAllSessions(
+        userId: string
+    ): Promise<void> {
+        await deleteRefreshTokensForUser(userId);
+    }
+
 }
