@@ -39,7 +39,7 @@ router.post(
 router.get(
     "/admin-test",
     authenticate,
-    requireRole("ADMIN"),
+    requireRole("ADMIN", "SUPER_ADMIN"),
     (req: AuthenticatedRequest, res) => {
         res.status(200).json({
             message: "You are an admin",
@@ -191,7 +191,7 @@ router.post(
 router.patch(
     "/:id/status",
     authenticate,
-    requireRole("ADMIN"),
+    requireRole("ADMIN", "SUPER_ADMIN"),
     (req, res, next) => {
         userController.updateUserStatus(
             req,
@@ -280,6 +280,33 @@ router.post(
     loginRateLimiter,
     (req, res, next) => {
         userController.login(req, res, next);
+    }
+);
+
+router.post(
+    "/admin/admins",
+    authenticate,
+    requireRole("SUPER_ADMIN"),
+    (req, res, next) => {
+        userController.createAdmin(
+            req,
+            res,
+            next
+        );
+    }
+);
+
+
+router.post(
+    "/admin/riders",
+    authenticate,
+    requireRole("ADMIN", "SUPER_ADMIN"),
+    (req, res, next) => {
+        userController.createRider(
+            req,
+            res,
+            next
+        );
     }
 );
 

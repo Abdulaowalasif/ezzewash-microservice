@@ -20,6 +20,8 @@ import type { UpdateProfileInput } from "./validation/update-user.schema.js";
 import type { CreateAddressInput } from "./validation/create-address.schema.js";
 import type { UpdateAddressInput } from "./validation/update-address.schema.js";
 import type { ChangePasswordInput } from "./validation/change-password.schema.js";
+import type { CreateAdminInput } from "./validation/create-admin.schema.js";
+import type { CreateRiderInput } from "./validation/create-rider.schema.js";
 
 export class UserService {
     constructor(
@@ -508,8 +510,43 @@ export class UserService {
 
     async updateUserStatus(
         userId: string,
-        isActive: boolean
+        isActive: boolean,
+        requesterRole: string
     ): Promise<User> {
+        const targetUser =
+            await this.userRepository.findById(userId);
+
+
+        if (!targetUser) {
+            throw new AppError(
+                "User not found",
+                404
+            );
+        }
+
+        if (
+            targetUser.role === "SUPER_ADMIN" &&
+            !isActive
+        ) {
+            throw new AppError(
+                "SUPER_ADMIN account cannot be deactivated",
+                403
+            );
+        }
+
+        if (
+            requesterRole === "ADMIN" &&
+            (
+                targetUser.role === "ADMIN" ||
+                targetUser.role === "SUPER_ADMIN"
+            )
+        ) {
+            throw new AppError(
+                "You are not allowed to manage this user",
+                403
+            );
+        }
+
         const user =
             await this.userRepository.updateUserStatus(
                 userId,
@@ -543,9 +580,7 @@ export class UserService {
         userId: string
     ): Promise<void> {
         const user =
-            await this.userRepository.deleteById(
-                userId
-            );
+            await this.userRepository.findById(userId);
 
         if (!user) {
             throw new AppError(
@@ -554,9 +589,133 @@ export class UserService {
             );
         }
 
+        if (user.role === "SUPER_ADMIN") {
+            throw new AppError(
+                "SUPER_ADMIN account cannot be deleted",
+                403
+            );
+        }
+
+        await this.userRepository.deleteById(
+            userId
+        );
+
         await deleteRefreshTokensForUser(
             userId
         );
+    }
+
+
+    async createAdmin(
+        data: CreateAdminInput
+    ): Promise<User> {
+        const existingEmail =
+            await this.userRepository.findByEmail(
+                data.email
+            );
+
+        if (existingEmail) {
+            throw new AppError(
+                "Email already exists",
+                409
+            );
+        }
+
+        const existingPhone =
+            await this.userRepository.findByPhone(
+                data.phone
+            );
+
+        if (existingPhone) {
+            throw new AppError(
+                "Phone number already exists",
+                409
+            );
+        }
+
+        const passwordHash =
+            await bcrypt.hash(
+                data.password,
+                12
+            );
+
+        const user =
+            await this.userRepository.create({
+                firstName: data.firstName,
+                lastName: data.lastName,
+                email: data.email,
+                phone: data.phone,
+                passwordHash,
+                role: "ADMIN",
+                isActive: true,
+                isEmailVerified: true,
+                isPhoneVerified: false,
+            });
+
+        const userObject =
+            user.toObject();
+
+        delete (
+            userObject as Partial<User>
+        ).passwordHash;
+
+        return userObject;
+    }
+
+    async createRider(
+        data: CreateRiderInput
+    ): Promise<User> {
+        const existingEmail =
+            await this.userRepository.findByEmail(
+                data.email
+            );
+
+        if (existingEmail) {
+            throw new AppError(
+                "Email already exists",
+                409
+            );
+        }
+
+        const existingPhone =
+            await this.userRepository.findByPhone(
+                data.phone
+            );
+
+        if (existingPhone) {
+            throw new AppError(
+                "Phone number already exists",
+                409
+            );
+        }
+
+        const passwordHash =
+            await bcrypt.hash(
+                data.password,
+                12
+            );
+
+        const user =
+            await this.userRepository.create({
+                firstName: data.firstName,
+                lastName: data.lastName,
+                email: data.email,
+                phone: data.phone,
+                passwordHash,
+                role: "RIDER",
+                isActive: true,
+                isEmailVerified: true,
+                isPhoneVerified: false,
+            });
+
+        const userObject =
+            user.toObject();
+
+        delete (
+            userObject as Partial<User>
+        ).passwordHash;
+
+        return userObject;
     }
 
 }

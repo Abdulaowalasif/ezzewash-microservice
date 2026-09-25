@@ -19,6 +19,8 @@ import { getAuthenticatedUserId } from "../auth/middleware/required-authenticate
 import { changePasswordSchema } from "./validation/change-password.schema.js";
 import { validateImageFile } from "../../infrastructure/upload/validate-image.js";
 import { updateUserStatusSchema } from "./validation/update-user-status.schema.js";
+import { createAdminSchema } from "./validation/create-admin.schema.js";
+import { createRiderSchema } from "./validation/create-rider.schema.js";
 
 
 const userRepository = new UserRepository();
@@ -574,11 +576,11 @@ export class UserController {
                 req.body
             );
 
-            const user =
-                await userService.updateUserStatus(
-                    targetUserId,
-                    data.isActive
-                );
+            const user = await userService.updateUserStatus(
+                targetUserId,
+                data.isActive,
+                req.user!.role
+            );
 
             res.status(200).json({
                 message: data.isActive
@@ -604,6 +606,47 @@ export class UserController {
 
             res.status(200).json({
                 message: "Account deleted successfully",
+            });
+        } catch (error) {
+            next(error);
+        }
+    }
+    async createAdmin(
+        req: AuthenticatedRequest,
+        res: Response,
+        next: NextFunction
+    ): Promise<void> {
+        try {
+            const data =
+                createAdminSchema.parse(req.body);
+
+            const user =
+                await userService.createAdmin(data);
+
+            res.status(201).json({
+                message: "Admin created successfully",
+                user,
+            });
+        } catch (error) {
+            next(error);
+        }
+    }
+
+    async createRider(
+        req: AuthenticatedRequest,
+        res: Response,
+        next: NextFunction
+    ): Promise<void> {
+        try {
+            const data =
+                createRiderSchema.parse(req.body);
+
+            const user =
+                await userService.createRider(data);
+
+            res.status(201).json({
+                message: "Rider created successfully",
+                user,
             });
         } catch (error) {
             next(error);

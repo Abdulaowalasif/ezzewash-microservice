@@ -8,7 +8,6 @@ import {
     redisClient,
 } from "./infrastructure/redis/redis.js";
 import { env } from "./infrastructure/config/config.js";
-
 const app = createApp();
 
 const PORT = env.port || 8000;

@@ -14,11 +14,12 @@ export function createApp() {
     const app = express();
     const startedAt = Date.now();
 
+
+    const uploadsPath = path.resolve("/app/uploads");
+
     app.use(
         "/uploads",
-        express.static(
-            path.resolve("D:/ezzewash/uploads")
-        )
+        express.static(uploadsPath)
     );
 
     app.use(

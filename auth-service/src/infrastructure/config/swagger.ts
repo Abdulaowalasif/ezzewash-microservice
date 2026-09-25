@@ -405,6 +405,7 @@ const options: swaggerJSDoc.Options = {
                 },
             },
 
+
             "/ready": {
                 get: {
                     tags: ["Health"],
@@ -1255,6 +1256,87 @@ const options: swaggerJSDoc.Options = {
                         403: {
                             description:
                                 "Admin role required",
+                        },
+                    },
+                },
+            },
+
+            "/api/v1/users/admin/admins": {
+                post: {
+                    tags: ["Admin"],
+                    summary: "Create an ADMIN account",
+                    security: [
+                        {
+                            bearerAuth: [],
+                        },
+                    ],
+                    requestBody: {
+                        required: true,
+                        content: {
+                            "application/json": {
+                                schema: {
+                                    $ref: "#/components/schemas/RegisterRequest",
+                                },
+                            },
+                        },
+                    },
+                    responses: {
+                        201: {
+                            description: "Admin created successfully",
+                        },
+                        400: {
+                            description: "Validation failed",
+                        },
+                        401: {
+                            description: "Authentication required",
+                        },
+                        403: {
+                            description: "SUPER_ADMIN role required",
+                        },
+                        409: {
+                            description:
+                                "Email or phone already exists",
+                        },
+                    },
+                },
+            },
+
+            "/api/v1/users/admin/riders": {
+                post: {
+                    tags: ["Admin"],
+                    summary: "Create a RIDER account",
+                    security: [
+                        {
+                            bearerAuth: [],
+                        },
+                    ],
+                    requestBody: {
+                        required: true,
+                        content: {
+                            "application/json": {
+                                schema: {
+                                    $ref: "#/components/schemas/RegisterRequest",
+                                },
+                            },
+                        },
+                    },
+                    responses: {
+                        201: {
+                            description: "Rider created successfully",
+                        },
+                        400: {
+                            description: "Validation failed",
+                        },
+                        401: {
+                            description: "Authentication required",
+                        },
+                        403: {
+                            description:
+                                "ADMIN or SUPER_ADMIN role required",
+                        },
+                        409: {
+                            description:
+                                "Email or phone already exists",
                         },
                     },
                 },
