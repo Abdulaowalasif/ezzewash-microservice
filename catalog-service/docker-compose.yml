@@ -1,0 +1,61 @@
+services:
+
+  catalog-service:
+    image: ezzewash/catalog-service:1.0
+    container_name: ezzewash-catalog-service
+    restart: unless-stopped
+
+    ports:
+      - "3002:3002"
+
+    env_file:
+      - .env
+
+    environment:
+      NODE_ENV: production
+      MONGO_URI: mongodb://catalog-mongodb:27017/ezzewash_catalog
+      REDIS_URL: redis://catalog-redis:6379
+
+    depends_on:
+      catalog-mongodb:
+        condition: service_healthy
+      catalog-redis:
+        condition: service_healthy
+
+  catalog-mongodb:
+    image: mongo:8
+    container_name: ezzewash-catalog-mongodb
+    restart: unless-stopped
+
+    ports:
+      - "27018:27017"
+
+    volumes:
+      - catalog_mongodb_data:/data/db
+
+    healthcheck:
+      test: [ "CMD", "mongosh", "--eval", "db.adminCommand('ping')" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  catalog-redis:
+    image: redis:7-alpine
+    container_name: ezzewash-catalog-redis
+    restart: unless-stopped
+
+    ports:
+      - "6380:6379"
+
+    volumes:
+      - catalog_redis_data:/data
+
+    healthcheck:
+      test: [ "CMD", "redis-cli", "ping" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  catalog_mongodb_data:
+  catalog_redis_data:

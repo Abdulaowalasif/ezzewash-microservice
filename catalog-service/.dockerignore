@@ -1,0 +1,10 @@
+```text
+node_modules
+dist
+.env
+.git
+.gitignore
+npm-debug.log
+Dockerfile
+docker-compose.yml
+```
