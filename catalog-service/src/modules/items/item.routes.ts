@@ -1,6 +1,7 @@
 import { Router } from "express";
 
-import { ItemController } from "./item.controller.js";
+import { ItemController, type ItemParams } from "./item.controller.js";
+import { authenticate } from "../../infrastructure/http/auth.middleware.js";
 
 const router = Router();
 
@@ -31,6 +32,7 @@ router.get(
 
 router.post(
     "/",
+    authenticate,
     (req, res, next) => {
         void itemController.createItem(
             req,
@@ -40,8 +42,9 @@ router.post(
     }
 );
 
-router.patch(
+router.patch<ItemParams>(
     "/:itemId",
+    authenticate,
     (req, res, next) => {
         void itemController.updateItem(
             req,
@@ -51,8 +54,9 @@ router.patch(
     }
 );
 
-router.patch(
+router.patch<ItemParams>(
     "/:itemId/status",
+    authenticate,
     (req, res, next) => {
         void itemController.updateItemStatus(
             req,
@@ -62,8 +66,9 @@ router.patch(
     }
 );
 
-router.delete(
+router.delete<ItemParams>(
     "/:itemId",
+    authenticate,
     (req, res, next) => {
         void itemController.deleteItem(
             req,

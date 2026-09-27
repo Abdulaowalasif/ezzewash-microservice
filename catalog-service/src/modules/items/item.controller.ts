@@ -20,7 +20,7 @@ import {
     sendSuccess,
 } from "../../infrastructure/http/api-response.js";
 
-type ItemParams = {
+export type ItemParams = {
     itemId: string;
 };
 

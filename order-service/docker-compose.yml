@@ -1,0 +1,62 @@
+services:
+
+  order-service:
+    image: ezzewash/order-service:1.0
+    container_name: ezzewash-order-service
+    restart: unless-stopped
+
+    ports:
+      - "3003:3003"
+
+    env_file:
+      - .env
+
+    environment:
+      NODE_ENV: production
+      MONGO_URI: mongodb://order-mongodb:27017/ezzewash_orders
+      REDIS_URL: redis://order-redis:6379
+      CATALOG_SERVICE_URL: http://host.docker.internal:3002
+
+    depends_on:
+      order-mongodb:
+        condition: service_healthy
+      order-redis:
+        condition: service_healthy
+
+  order-mongodb:
+    image: mongo:8
+    container_name: ezzewash-order-mongodb
+    restart: unless-stopped
+
+    ports:
+      - "27019:27017"
+
+    volumes:
+      - order_mongodb_data:/data/db
+
+    healthcheck:
+      test: [ "CMD", "mongosh", "--eval", "db.adminCommand('ping')" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  order-redis:
+    image: redis:7-alpine
+    container_name: ezzewash-order-redis
+    restart: unless-stopped
+
+    ports:
+      - "6381:6379"
+
+    volumes:
+      - order_redis_data:/data
+
+    healthcheck:
+      test: [ "CMD", "redis-cli", "ping" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  order_mongodb_data:
+  order_redis_data:
