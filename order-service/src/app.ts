@@ -6,6 +6,7 @@ import { env } from "./config/config.js";
 import orderRoutes from "./routes/order.routes.js";
 import { errorMiddleware } from './middlewares/error.middleware.js';
 import capacitySlotRoutes from "./routes/capacity-slot.routes.js";
+import internalOrderRoutes from "./routes/internal-order.routes.js";
 
 const app = express();
 
@@ -40,6 +41,10 @@ app.use(
 );
 
 
+app.use(
+    "/api/v1/internal",
+    internalOrderRoutes
+);
 
 
 

@@ -1,0 +1,55 @@
+services:
+
+  mysql:
+    image: mysql:8.4
+    container_name: ezzewash-rider-mysql
+    environment:
+      MYSQL_DATABASE: ezzewash_rider
+      MYSQL_ROOT_PASSWORD: 1234
+    ports:
+      - "3307:3306"
+    volumes:
+      - rider_mysql_data:/var/lib/mysql
+    healthcheck:
+      test: [ "CMD", "mysqladmin", "ping", "-h", "localhost", "-uroot", "-p1234" ]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  redis:
+    image: redis:7
+    container_name: ezzewash-rider-redis
+    ports:
+      - "6380:6379"
+    healthcheck:
+      test: [ "CMD", "redis-cli", "ping" ]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  rider-service:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: ezzewash-rider-service
+    ports:
+      - "3004:3004"
+    environment:
+      SERVER_PORT: 3004
+      DB_URL: jdbc:mysql://mysql:3306/ezzewash_rider
+      DB_USERNAME: root
+      DB_PASSWORD: 1234
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      CATALOG_SERVICE_URL: http://host.docker.internal:3002
+      ORDER_SERVICE_URL: http://host.docker.internal:3003
+      RIDER_FIXED_EARNING: 150.00
+      JWT_ACCESS_SECRET: ${JWT_ACCESS_SECRET}
+    depends_on:
+      mysql:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+volumes:
+  rider_mysql_data:

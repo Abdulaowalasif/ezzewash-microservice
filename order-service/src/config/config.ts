@@ -29,6 +29,10 @@ const envSchema = z.object({
         .string()
         .url(),
 
+    RIDER_SERVICE_URL: z
+        .string()
+        .url(),
+
     REDIS_URL: z
         .string()
         .min(1),
@@ -36,6 +40,7 @@ const envSchema = z.object({
 
 const parsedEnv =
     envSchema.parse(process.env);
+
 
 export const env = {
     nodeEnv: parsedEnv.NODE_ENV,
@@ -58,6 +63,9 @@ export const env = {
 
     catalogServiceUrl:
         parsedEnv.CATALOG_SERVICE_URL,
+
+    riderServiceUrl:
+        parsedEnv.RIDER_SERVICE_URL,
 
     redisUrl:
         parsedEnv.REDIS_URL,

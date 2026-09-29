@@ -173,10 +173,20 @@ export class OrderController {
                     req.body
                 );
 
+            const authorization =
+                req.headers.authorization;
+
+            if (!authorization) {
+                throw new Error(
+                    "Authorization header is required"
+                );
+            }
+
             const order =
                 await orderService.assignRider(
                     orderId,
-                    data.riderId
+                    data.riderId,
+                    authorization
                 );
 
             res.status(200).json({

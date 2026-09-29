@@ -18,6 +18,7 @@ import {
     AppError,
 } from "../utils/app-error.js";
 import { capacitySlotService } from "./capacity-slot.service.js";
+import { riderClient } from "../clients/rider.client.js";
 
 
 
@@ -247,6 +248,11 @@ export class OrderService {
             );
         }
 
+        if (order.status === status) {
+            return order;
+        }
+
+
         const allowedStatuses =
             allowedTransitions[
             order.status
@@ -291,7 +297,8 @@ export class OrderService {
 
     async assignRider(
         orderId: string,
-        riderId: string
+        riderId: string,
+        authorization: string
     ) {
         const order =
             await orderRepository.findById(
@@ -321,6 +328,14 @@ export class OrderService {
                 "Order already has a rider"
             );
         }
+
+        await riderClient.createAssignment(
+            {
+                riderId,
+                orderId,
+            },
+            authorization
+        );
 
         const updatedOrder =
             await orderRepository.assignRider(
