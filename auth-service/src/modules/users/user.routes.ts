@@ -187,7 +187,23 @@ router.post(
         userController.uploadProfilePicture(req, res, next);
     }
 );
-
+router.get(
+    "/:id",
+    authenticate,
+    (req: AuthenticatedRequest, res, next) => {
+        if (
+            req.user!.userId !== req.params.id &&
+            req.user!.role !== "ADMIN" &&
+            req.user!.role !== "SUPER_ADMIN"
+        ) {
+            res.status(403).json({
+                message: "Forbidden",
+            });
+            return;
+        }
+        userController.getInternalUserById(req, res, next);
+    }
+);
 router.patch(
     "/:id/status",
     authenticate,

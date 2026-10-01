@@ -187,7 +187,8 @@ export class OrderService {
 
     async getOrderWithItems(
         orderId: string,
-        userId: string
+        userId: string,
+        userRole?: string
     ) {
         const order =
             await orderRepository.findById(
@@ -201,7 +202,7 @@ export class OrderService {
             );
         }
 
-        if (order.userId !== userId) {
+        if (order.userId !== userId && userRole !== "ADMIN") {
             throw new AppError(
                 403,
                 "You do not have access to this order"

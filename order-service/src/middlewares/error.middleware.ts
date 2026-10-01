@@ -37,6 +37,14 @@ export function errorMiddleware(
         return;
     }
 
+    if (error instanceof Error && error.name === "CastError") {
+        res.status(400).json({
+            success: false,
+            message: "Invalid ID format",
+        });
+        return;
+    }
+
     console.error(error);
 
     res.status(500).json({

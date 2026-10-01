@@ -3,6 +3,7 @@ services:
   mysql:
     image: mysql:8.4
     container_name: ezzewash-rider-mysql
+    restart: unless-stopped
     environment:
       MYSQL_DATABASE: ezzewash_rider
       MYSQL_ROOT_PASSWORD: 1234
@@ -19,8 +20,9 @@ services:
   redis:
     image: redis:7
     container_name: ezzewash-rider-redis
+    restart: unless-stopped
     ports:
-      - "6380:6379"
+      - "6382:6379"
     healthcheck:
       test: [ "CMD", "redis-cli", "ping" ]
       interval: 5s
@@ -32,6 +34,7 @@ services:
       context: .
       dockerfile: Dockerfile
     container_name: ezzewash-rider-service
+    restart: unless-stopped
     ports:
       - "3004:3004"
     environment:

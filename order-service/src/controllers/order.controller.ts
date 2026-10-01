@@ -65,7 +65,8 @@ export class OrderController {
             const order =
                 await orderService.getOrderWithItems(
                     orderId,
-                    req.user!.userId
+                    req.user!.userId,
+                    req.user!.role
                 );
 
             res.status(200).json({

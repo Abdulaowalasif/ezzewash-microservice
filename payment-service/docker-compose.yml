@@ -1,0 +1,42 @@
+services:
+
+  mysql:
+    image: mysql:8.4
+    container_name: ezzewash-payment-mysql
+    restart: unless-stopped
+    environment:
+      MYSQL_DATABASE: ezzewash_payment
+      MYSQL_ROOT_PASSWORD: 1234
+    ports:
+      - "3308:3306"
+    volumes:
+      - payment_mysql_data:/var/lib/mysql
+    healthcheck:
+      test: [ "CMD", "mysqladmin", "ping", "-h", "localhost", "-uroot", "-p1234" ]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  payment-service:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: ezzewash-payment-service
+    restart: unless-stopped
+    ports:
+      - "3005:3005"
+    environment:
+      SERVER_PORT: 3005
+      DB_URL: jdbc:mysql://mysql:3306/ezzewash_payment
+      DB_USERNAME: root
+      DB_PASSWORD: 1234
+      ORDER_SERVICE_URL: http://host.docker.internal:3003
+      RIDER_SERVICE_URL: http://host.docker.internal:3004
+      AUTH_SERVICE_URL: http://host.docker.internal:3001
+      JWT_ACCESS_SECRET: ${JWT_ACCESS_SECRET}
+    depends_on:
+      mysql:
+        condition: service_healthy
+
+volumes:
+  payment_mysql_data:

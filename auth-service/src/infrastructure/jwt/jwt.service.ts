@@ -15,7 +15,7 @@ export class JwtService {
         const secret = env.jwtAccessSecret;
 
         return jwt.sign(payload, secret, {
-            expiresIn: "15m",
+            expiresIn: "7d",
         });
     }
 

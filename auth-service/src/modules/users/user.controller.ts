@@ -653,4 +653,44 @@ export class UserController {
         }
     }
 
+    async getInternalUserById(
+        req: Request,
+        res: Response,
+        next: NextFunction
+    ) {
+        try {
+            const id = Array.isArray(req.params.id)
+                ? req.params.id[0]
+                : req.params.id;
+
+            if (!id) {
+                res.status(400).json({
+                    message: "User ID is required",
+                });
+                return;
+            }
+
+            const user =
+                await userService.getUserById(id);
+
+            if (!user) {
+                res.status(404).json({
+                    message: "User not found",
+                });
+                return;
+            }
+
+            res.status(200).json({
+                id,
+                firstName: user.firstName,
+                lastName: user.lastName,
+                email: user.email,
+                phone: user.phone,
+                isActive: user.isActive,
+                role: user.role,
+            });
+        } catch (error) {
+            next(error);
+        }
+    }
 }

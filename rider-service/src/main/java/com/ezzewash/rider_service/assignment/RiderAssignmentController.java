@@ -25,129 +25,109 @@ import tools.jackson.databind.JsonNode;
 @RequiredArgsConstructor
 public class RiderAssignmentController {
 
-    private final RiderAssignmentService assignmentService;
+        private final RiderAssignmentService assignmentService;
 
-    @PreAuthorize("hasRole('ADMIN')")
-    @PostMapping
-    @ResponseStatus(HttpStatus.CREATED)
-    public AssignmentResponse createAssignment(
-            @Valid @RequestBody CreateAssignmentRequest request
-    ) {
-        return AssignmentResponse.from(
-                assignmentService.createAssignment(request)
-        );
-    }
+        @PreAuthorize("hasRole('ADMIN')")
+        @PostMapping
+        @ResponseStatus(HttpStatus.CREATED)
+        public AssignmentResponse createAssignment(
+                        @Valid @RequestBody CreateAssignmentRequest request) {
+                return AssignmentResponse.from(
+                                assignmentService.createAssignment(request));
+        }
 
-    @PreAuthorize("hasAnyRole('ADMIN', 'RIDER')")
-    @GetMapping("/{assignmentId}")
-    public AssignmentResponse getAssignment(
-            @PathVariable UUID assignmentId,
-            @AuthenticationPrincipal Jwt jwt
-    ) {
-        return AssignmentResponse.from(
-                assignmentService.getAssignment(
-                        assignmentId,
-                        jwt.getClaimAsString("userId"),
-                        jwt.getClaimAsString("role")
-                )
-        );
-    }
+        @PreAuthorize("hasAnyRole('ADMIN', 'RIDER')")
+        @GetMapping("/{assignmentId}")
+        public AssignmentResponse getAssignment(
+                        @PathVariable UUID assignmentId,
+                        @AuthenticationPrincipal Jwt jwt) {
+                return AssignmentResponse.from(
+                                assignmentService.getAssignment(
+                                                assignmentId,
+                                                jwt.getClaimAsString("userId"),
+                                                jwt.getClaimAsString("role")));
+        }
 
-    @PreAuthorize("hasAnyRole('ADMIN', 'RIDER')")
-    @GetMapping("/rider/{riderId}")
-    public AssignmentPageResponse getRiderAssignments(
-            @PathVariable UUID riderId,
-            @AuthenticationPrincipal Jwt jwt,
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int limit
-    ) {
-        Page<AssignmentResponse> result =
-                assignmentService
-                        .getRiderAssignments(
-                                riderId,
-                                jwt.getClaimAsString("userId"),
-                                jwt.getClaimAsString("role"),
-                                PageRequest.of(
-                                        page,
-                                        limit,
-                                        Sort.by(
-                                                Sort.Direction.DESC,
-                                                "createdAt"
-                                        )
-                                )
-                        )
-                        .map(AssignmentResponse::from);
+        @PreAuthorize("hasAnyRole('ADMIN', 'RIDER')")
+        @GetMapping("/rider/{riderId}")
+        public AssignmentPageResponse getRiderAssignments(
+                        @PathVariable UUID riderId,
+                        @AuthenticationPrincipal Jwt jwt,
+                        @RequestParam(defaultValue = "0") int page,
+                        @RequestParam(defaultValue = "10") int limit) {
+                Page<AssignmentResponse> result = assignmentService
+                                .getRiderAssignments(
+                                                riderId,
+                                                jwt.getClaimAsString("userId"),
+                                                jwt.getClaimAsString("role"),
+                                                PageRequest.of(
+                                                                page,
+                                                                limit,
+                                                                Sort.by(
+                                                                                Sort.Direction.DESC,
+                                                                                "createdAt")))
+                                .map(AssignmentResponse::from);
 
-        return new AssignmentPageResponse(
-                result.getContent(),
-                result.getNumber(),
-                result.getSize(),
-                result.getTotalElements(),
-                result.getTotalPages(),
-                result.isFirst(),
-                result.isLast()
-        );
-    }
+                return new AssignmentPageResponse(
+                                result.getContent(),
+                                result.getNumber(),
+                                result.getSize(),
+                                result.getTotalElements(),
+                                result.getTotalPages(),
+                                result.isFirst(),
+                                result.isLast());
+        }
 
-    @PreAuthorize("hasAnyRole('ADMIN', 'RIDER')")
-    @GetMapping("/order/{orderId}")
-    public List<AssignmentResponse> getOrderAssignments(
-            @PathVariable String orderId,
-            @AuthenticationPrincipal Jwt jwt
-    ) {
-        return assignmentService
-                .getOrderAssignments(
-                        orderId,
-                        jwt.getClaimAsString("userId"),
-                        jwt.getClaimAsString("role")
-                )
-                .stream()
-                .map(AssignmentResponse::from)
-                .toList();
-    }
+        @PreAuthorize("hasAnyRole('ADMIN', 'RIDER')")
+        @GetMapping("/order/{orderId}")
+        public List<AssignmentResponse> getOrderAssignments(
+                        @PathVariable String orderId,
+                        @AuthenticationPrincipal Jwt jwt) {
+                return assignmentService
+                                .getOrderAssignments(
+                                                orderId,
+                                                jwt.getClaimAsString("userId"),
+                                                jwt.getClaimAsString("role"))
+                                .stream()
+                                .map(AssignmentResponse::from)
+                                .toList();
+        }
 
-    @PreAuthorize("hasAnyRole('ADMIN', 'RIDER')")
-    @GetMapping("/rider/{riderId}/active")
-    public List<AssignmentResponse> getActiveAssignments(
-            @PathVariable UUID riderId,
-            @AuthenticationPrincipal Jwt jwt
-    ) {
-        return assignmentService
-                .getActiveAssignments(
-                        riderId,
-                        jwt.getClaimAsString("userId"),
-                        jwt.getClaimAsString("role")
-                )
-                .stream()
-                .map(AssignmentResponse::from)
-                .toList();
-    }
+        @PreAuthorize("hasAnyRole('ADMIN', 'RIDER')")
+        @GetMapping("/rider/{riderId}/active")
+        public List<AssignmentResponse> getActiveAssignments(
+                        @PathVariable UUID riderId,
+                        @AuthenticationPrincipal Jwt jwt) {
+                return assignmentService
+                                .getActiveAssignments(
+                                                riderId,
+                                                jwt.getClaimAsString("userId"),
+                                                jwt.getClaimAsString("role"))
+                                .stream()
+                                .map(AssignmentResponse::from)
+                                .toList();
+        }
 
-    @PreAuthorize("hasRole('RIDER')")
-    @PatchMapping("/{assignmentId}/status")
-    public AssignmentResponse updateStatus(
-            @PathVariable UUID assignmentId,
-            @Valid @RequestBody UpdateAssignmentStatusRequest request,
-            @AuthenticationPrincipal Jwt jwt
-    ) {
-        return AssignmentResponse.from(
-                assignmentService.updateStatus(
-                        assignmentId,
-                        request,
-                        jwt.getClaimAsString("userId")
-                )
-        );
-    }
+        @PreAuthorize("hasRole('RIDER')")
+        @PatchMapping("/{assignmentId}/status")
+        public AssignmentResponse updateStatus(
+                        @PathVariable UUID assignmentId,
+                        @Valid @RequestBody UpdateAssignmentStatusRequest request,
+                        @AuthenticationPrincipal Jwt jwt) {
+                return AssignmentResponse.from(
+                                assignmentService.updateStatus(
+                                                assignmentId,
+                                                request,
+                                                jwt.getClaimAsString("userId")));
+        }
 
-    @PreAuthorize("hasRole('RIDER')")
-    @GetMapping("/{assignmentId}/order")
-    public JsonNode getAssignmentOrder(
-            @PathVariable UUID assignmentId,
-            @AuthenticationPrincipal Jwt jwt
-    ) {
-        return assignmentService.getAssignmentOrder(
-                assignmentId,
-                jwt.getClaimAsString("userId")
-        );
-    }
+        @PreAuthorize("hasRole('RIDER')")
+        @GetMapping("/{assignmentId}/order")
+        public JsonNode getAssignmentOrder(
+                        @PathVariable UUID assignmentId,
+                        @AuthenticationPrincipal Jwt jwt) {
+                return assignmentService.getAssignmentOrder(
+                                assignmentId,
+                                jwt.getClaimAsString("userId"));
+        }
 }
