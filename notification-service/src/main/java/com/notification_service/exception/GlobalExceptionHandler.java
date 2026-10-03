@@ -1,0 +1,71 @@
+package com.notification_service.exception;
+
+import jakarta.validation.ConstraintViolationException;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.AccessDeniedException;
+import org.springframework.web.bind.MethodArgumentNotValidException;
+import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.bind.annotation.RestControllerAdvice;
+
+import java.util.HashMap;
+import java.util.Map;
+
+@RestControllerAdvice
+public class GlobalExceptionHandler {
+
+    @ExceptionHandler(AppException.class)
+    public ResponseEntity<Map<String, Object>> handleAppException(AppException exception) {
+        return buildResponse(exception.getStatusCode(), exception.getMessage());
+    }
+
+    @ExceptionHandler(AccessDeniedException.class)
+    public ResponseEntity<Map<String, Object>> handleAccessDeniedException(
+            AccessDeniedException exception
+    ) {
+        return buildResponse(403, exception.getMessage());
+    }
+
+    @ExceptionHandler(MethodArgumentNotValidException.class)
+    public ResponseEntity<Map<String, Object>> handleValidationException(
+            MethodArgumentNotValidException exception
+    ) {
+        Map<String, String> errors = new HashMap<>();
+
+        exception.getBindingResult()
+                .getFieldErrors()
+                .forEach(error ->
+                        errors.put(error.getField(), error.getDefaultMessage())
+                );
+
+        Map<String, Object> response = new HashMap<>();
+        response.put("status", 400);
+        response.put("message", "Validation failed");
+        response.put("errors", errors);
+
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
+    }
+
+    @ExceptionHandler(ConstraintViolationException.class)
+    public ResponseEntity<Map<String, Object>> handleConstraintViolationException(
+            ConstraintViolationException exception
+    ) {
+        return buildResponse(400, exception.getMessage());
+    }
+
+    @ExceptionHandler(Exception.class)
+    public ResponseEntity<Map<String, Object>> handleException(Exception exception) {
+        return buildResponse(500, "Internal server error");
+    }
+
+    private ResponseEntity<Map<String, Object>> buildResponse(
+            int status,
+            String message
+    ) {
+        Map<String, Object> response = new HashMap<>();
+        response.put("status", status);
+        response.put("message", message);
+
+        return ResponseEntity.status(status).body(response);
+    }
+}

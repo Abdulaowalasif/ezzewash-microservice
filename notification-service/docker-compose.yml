@@ -1,0 +1,44 @@
+services:
+
+  mysql:
+    image: mysql:8.4
+    container_name: ezzewash-notification-mysql
+    restart: unless-stopped
+    environment:
+      MYSQL_DATABASE: ezzewash_notification
+      MYSQL_ROOT_PASSWORD: 1234
+    ports:
+      - "3309:3306"
+    volumes:
+      - notification_mysql_data:/var/lib/mysql
+    healthcheck:
+      test: [ "CMD", "mysqladmin", "ping", "-h", "localhost", "-uroot", "-p1234" ]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  notification-service:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: ezzewash-notification-service
+    restart: unless-stopped
+    ports:
+      - "3006:3006"
+    environment:
+      SERVER_PORT: 3006
+      DB_URL: jdbc:mysql://mysql:3306/ezzewash_notification
+      DB_USERNAME: root
+      DB_PASSWORD: 1234
+      AUTH_SERVICE_URL: http://host.docker.internal:3001
+      MAIL_HOST: smtp.gmail.com
+      MAIL_PORT: 587
+#      MAIL_USERNAME: ${MAIL_USERNAME:abdulaowalasif2001@gmail.com}
+#      MAIL_PASSWORD: ${MAIL_PASSWORD:eomquqxigokefyfx}
+#      JWT_SECRET: ${JWT_SECRET:cff4f80b6d0d6a86422b0398ecc5eb9a68f6661b1225c0c0394ccccf2847544704e7849ef92ef434a055230fb55663186f91ddec02966310293c42fcbdf95992}
+    depends_on:
+      mysql:
+        condition: service_healthy
+
+volumes:
+  notification_mysql_data:
