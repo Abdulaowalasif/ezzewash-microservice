@@ -19,12 +19,28 @@ export interface IOrderSlot {
     time: string;
 }
 
+export interface IOrderAddress {
+    addressLine1: string;
+    addressLine2?: string;
+    city: string;
+    state?: string;
+    postalCode?: string;
+    country: string;
+    location?: {
+        latitude?: number;
+        longitude?: number;
+    };
+}
+
 export interface IOrder extends Document {
     riderId?: string;
     userId: string;
     branchId: string;
+    branchName: string;
     pickupSlot: IOrderSlot;
+    pickupAddress: IOrderAddress;
     deliverySlot: IOrderSlot;
+    deliveryAddress: IOrderAddress;
     status: OrderStatus;
     subtotal: number;
     discount: number;
@@ -32,6 +48,49 @@ export interface IOrder extends Document {
     createdAt: Date;
     updatedAt: Date;
 }
+
+const orderAddressSchema = new Schema(
+    {
+        addressLine1: {
+            type: String,
+            required: true,
+            trim: true,
+        },
+        addressLine2: {
+            type: String,
+            trim: true,
+        },
+        city: {
+            type: String,
+            required: true,
+            trim: true,
+        },
+        state: {
+            type: String,
+            trim: true,
+        },
+        postalCode: {
+            type: String,
+            trim: true,
+        },
+        country: {
+            type: String,
+            required: true,
+            trim: true,
+        },
+        location: {
+            latitude: {
+                type: Number,
+            },
+            longitude: {
+                type: Number,
+            },
+        },
+    },
+    {
+        _id: false,
+    }
+);
 
 const orderSchema =
     new Schema<IOrder>(
@@ -53,6 +112,11 @@ const orderSchema =
                 index: true,
             },
 
+            branchName: {
+                type: String,
+                required: true,
+            },
+
             pickupSlot: {
                 type: {
                     date: {
@@ -67,6 +131,11 @@ const orderSchema =
                 required: true,
             },
 
+            pickupAddress: {
+                type: orderAddressSchema,
+                required: true,
+            },
+
             deliverySlot: {
                 type: {
                     date: {
@@ -78,6 +147,11 @@ const orderSchema =
                         required: true,
                     },
                 },
+                required: true,
+            },
+
+            deliveryAddress: {
+                type: orderAddressSchema,
                 required: true,
             },
 

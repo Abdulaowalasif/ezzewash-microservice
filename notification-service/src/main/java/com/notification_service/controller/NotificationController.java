@@ -99,6 +99,27 @@ public class NotificationController {
         );
     }
 
+    @PatchMapping("/{notificationId}/read")
+    public ResponseEntity<NotificationResponse> markAsRead(
+            @PathVariable UUID notificationId,
+            Authentication authentication
+    ) {
+        NotificationResponse existingNotification =
+                notificationService.getNotification(notificationId);
+
+        if (!isAdmin(authentication)) {
+            String authenticatedUserId = getAuthenticatedUserId(authentication);
+
+            if (!authenticatedUserId.equals(existingNotification.userId())) {
+                throw new AccessDeniedException("You cannot modify another user's notification");
+            }
+        }
+
+        return ResponseEntity.ok(
+                notificationService.markAsRead(notificationId)
+        );
+    }
+
     private String getAuthenticatedUserId(Authentication authentication) {
         Jwt jwt = (Jwt) authentication.getPrincipal();
         return jwt.getClaimAsString("userId");

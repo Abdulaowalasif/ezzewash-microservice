@@ -8,7 +8,13 @@ public record CreateRiderRequest(
         String userId,
 
         @NotBlank(message = "Branch ID is required")
-        String branchId
+        String branchId,
+
+        @NotBlank(message = "Vehicle type is required")
+        String vehicleType,
+
+        @NotBlank(message = "Vehicle number is required")
+        String vehicleNumber
 
 ) {
 }

@@ -30,7 +30,8 @@ public class RiderController {
         return RiderResponse.from(
                 riderService.createRider(
                         request,
-                        jwt.getClaimAsString("userId")
+                        jwt.getClaimAsString("userId"),
+                        jwt.getTokenValue()
                 )
         );
     }

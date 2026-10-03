@@ -1,0 +1,20 @@
+services:
+
+  api-gateway:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: ezzewash-api-gateway
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      SERVER_PORT: 3000
+      AUTH_SERVICE_URL: http://host.docker.internal:3001
+      CATALOG_SERVICE_URL: http://host.docker.internal:3002
+      ORDER_SERVICE_URL: http://host.docker.internal:3003
+      RIDER_SERVICE_URL: http://host.docker.internal:3004
+      PAYMENT_SERVICE_URL: http://host.docker.internal:3005
+      NOTIFICATION_SERVICE_URL: http://host.docker.internal:3006
+    extra_hosts:
+      - "host.docker.internal:host-gateway"

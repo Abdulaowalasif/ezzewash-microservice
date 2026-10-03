@@ -49,6 +49,7 @@ public class NotificationService {
                 .status(NotificationStatus.PENDING)
                 .referenceType(request.referenceType())
                 .referenceId(request.referenceId())
+                .isRead(false)
                 .build();
 
         return toResponse(notificationRepository.save(notification));
@@ -118,6 +119,21 @@ public class NotificationService {
         return toResponse(notification);
     }
 
+    public NotificationResponse markAsRead(UUID notificationId) {
+        Notification notification = notificationRepository.findById(notificationId)
+                .orElseThrow(() ->
+                        new ResourceNotFoundException("Notification not found"));
+
+        if (!notification.isRead()) {
+            notification.setRead(true);
+            notification.setReadAt(LocalDateTime.now());
+            notification.setUpdatedAt(LocalDateTime.now());
+            notificationRepository.save(notification);
+        }
+
+        return toResponse(notification);
+    }
+
     private NotificationResponse toResponse(Notification notification) {
         return new NotificationResponse(
                 notification.getId(),
@@ -131,6 +147,8 @@ public class NotificationService {
                 notification.getReferenceId(),
                 notification.getFailureReason(),
                 notification.getSentAt(),
+                notification.isRead(),
+                notification.getReadAt(),
                 notification.getCreatedAt(),
                 notification.getUpdatedAt()
         );

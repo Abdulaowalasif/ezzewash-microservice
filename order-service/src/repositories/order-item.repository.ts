@@ -5,7 +5,9 @@ export class OrderItemRepository {
         items: {
             orderId: string;
             serviceId: string;
+            serviceName: string;
             itemId: string;
+            itemName: string;
             quantity: number;
             unitPrice: number;
             totalPrice: number;

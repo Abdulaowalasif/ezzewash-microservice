@@ -1,6 +1,8 @@
 import express from "express";
 import helmet from "helmet";
 import mongoose from "mongoose";
+import fs from "node:fs";
+import path from "node:path";
 
 import branchRoutes from "./modules/branches/branch.routes.js";
 import serviceRoutes from "./modules/services/service.routes.js";
@@ -40,6 +42,13 @@ import { apiRateLimiter } from "./infrastructure/http/rate-limit.js";
 export function createApp() {
     const app = express();
     const startedAt = Date.now();
+
+    const uploadsPath = path.resolve("/app/uploads");
+
+    app.use(
+        "/uploads",
+        express.static(uploadsPath)
+    );
 
     app.use(helmet());
 

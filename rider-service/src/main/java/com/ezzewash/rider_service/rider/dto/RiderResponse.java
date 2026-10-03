@@ -16,6 +16,12 @@
             int totalDeliveries,
             BigDecimal totalEarnings,
             BigDecimal cashInHand,
+            String firstName,
+            String lastName,
+            String phone,
+            String profilePicture,
+            String vehicleType,
+            String vehicleNumber,
             LocalDateTime createdAt,
             LocalDateTime updatedAt
     ) {
@@ -33,6 +39,12 @@
                     rider.getTotalDeliveries(),
                     rider.getTotalEarnings(),
                     rider.getCashInHand(),
+                    rider.getFirstName(),
+                    rider.getLastName(),
+                    rider.getPhone(),
+                    rider.getProfilePicture(),
+                    rider.getVehicleType(),
+                    rider.getVehicleNumber(),
                     rider.getCreatedAt(),
                     rider.getUpdatedAt()
             );

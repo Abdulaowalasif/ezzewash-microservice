@@ -25,6 +25,17 @@ export const createServiceSchema = z.object({
         .max(500)
         .optional(),
 
+    imageUrl: z
+        .string()
+        .trim()
+        .url("Must be a valid URL")
+        .optional(),
+
+    displayOrder: z
+        .number()
+        .int()
+        .optional(),
+
     isActive: z
         .boolean()
         .optional(),

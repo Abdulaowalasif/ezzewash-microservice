@@ -1,5 +1,7 @@
 package com.ezzewash.rider_service.rider;
 
+import com.ezzewash.rider_service.auth.AuthClient;
+import com.ezzewash.rider_service.auth.dto.AuthUserResponse;
 import com.ezzewash.rider_service.catalog.CatalogAuthorizationService;
 import com.ezzewash.rider_service.common.exception.ConflictException;
 import com.ezzewash.rider_service.common.exception.ResourceNotFoundException;
@@ -21,10 +23,12 @@ public class RiderService {
     private final RiderRepository riderRepository;
     private final CatalogAuthorizationService catalogAuthorizationService;
     private final RiderAssignmentService riderAssignmentService;
+    private final AuthClient authClient;
 
     public Rider createRider(
             CreateRiderRequest request,
-            String adminUserId
+            String adminUserId,
+            String adminToken
     ) {
         if (riderRepository.existsByUserId(
                 request.userId()
@@ -47,9 +51,20 @@ public class RiderService {
             );
         }
 
+        AuthUserResponse authUser = authClient.getUserById(request.userId(), adminToken);
+        if (authUser == null) {
+            throw new ResourceNotFoundException("User not found in Auth Service");
+        }
+
         Rider rider = Rider.builder()
                 .userId(request.userId())
                 .branchId(request.branchId())
+                .firstName(authUser.firstName())
+                .lastName(authUser.lastName())
+                .phone(authUser.phone())
+                .profilePicture(authUser.profilePicture())
+                .vehicleType(request.vehicleType())
+                .vehicleNumber(request.vehicleNumber())
                 .active(true)
                 .online(false)
                 .rating(BigDecimal.ZERO)
@@ -172,7 +187,13 @@ public class RiderService {
                 rider.getRating(),
                 rider.getTotalDeliveries(),
                 rider.getTotalEarnings(),
-                rider.getCashInHand()
+                rider.getCashInHand(),
+                rider.getFirstName(),
+                rider.getLastName(),
+                rider.getPhone(),
+                rider.getProfilePicture(),
+                rider.getVehicleType(),
+                rider.getVehicleNumber()
         );
     }
 

@@ -7,7 +7,9 @@ import {
 export interface IOrderItem extends Document {
     orderId: string;
     serviceId: string;
+    serviceName: string;
     itemId: string;
+    itemName: string;
     quantity: number;
     unitPrice: number;
     totalPrice: number;
@@ -28,7 +30,17 @@ const orderItemSchema =
                 required: true,
             },
 
+            serviceName: {
+                type: String,
+                required: true,
+            },
+
             itemId: {
+                type: String,
+                required: true,
+            },
+
+            itemName: {
                 type: String,
                 required: true,
             },

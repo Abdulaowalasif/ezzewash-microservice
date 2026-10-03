@@ -1,5 +1,20 @@
 import { z } from "zod";
 
+const addressSchema = z.object({
+    addressLine1: z.string().min(1),
+    addressLine2: z.string().optional(),
+    city: z.string().min(1),
+    state: z.string().optional(),
+    postalCode: z.string().optional(),
+    country: z.string().min(1),
+    location: z
+        .object({
+            latitude: z.number(),
+            longitude: z.number(),
+        })
+        .optional(),
+});
+
 export const createOrderSchema =
     z.object({
         branchId: z
@@ -16,6 +31,8 @@ export const createOrderSchema =
                 .min(1),
         }),
 
+        pickupAddress: addressSchema,
+
         deliverySlot: z.object({
             date: z
                 .string()
@@ -25,6 +42,8 @@ export const createOrderSchema =
                 .string()
                 .min(1),
         }),
+
+        deliveryAddress: addressSchema,
 
         items: z
             .array(

@@ -12,6 +12,12 @@
             BigDecimal rating,
             int totalDeliveries,
             BigDecimal totalEarnings,
-            BigDecimal cashInHand
+            BigDecimal cashInHand,
+            String firstName,
+            String lastName,
+            String phone,
+            String profilePicture,
+            String vehicleType,
+            String vehicleNumber
     ) {
     }

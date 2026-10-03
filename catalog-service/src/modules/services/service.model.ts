@@ -13,6 +13,8 @@ export interface IService extends Document {
     code: string;
 
     description?: string;
+    imageUrl?: string;
+    displayOrder: number;
 
     isActive: boolean;
 
@@ -51,6 +53,16 @@ const serviceSchema =
                 type: String,
                 trim: true,
                 maxlength: 500,
+            },
+
+            imageUrl: {
+                type: String,
+                trim: true,
+            },
+
+            displayOrder: {
+                type: Number,
+                default: 0,
             },
 
             isActive: {

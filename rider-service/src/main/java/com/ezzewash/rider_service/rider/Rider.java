@@ -44,6 +44,24 @@ public class Rider {
     )
     private String branchId;
 
+    @Column(name = "first_name")
+    private String firstName;
+
+    @Column(name = "last_name")
+    private String lastName;
+
+    @Column(name = "phone")
+    private String phone;
+
+    @Column(name = "profile_picture")
+    private String profilePicture;
+
+    @Column(name = "vehicle_type")
+    private String vehicleType;
+
+    @Column(name = "vehicle_number")
+    private String vehicleNumber;
+
     @Column(
             name = "is_active",
             nullable = false

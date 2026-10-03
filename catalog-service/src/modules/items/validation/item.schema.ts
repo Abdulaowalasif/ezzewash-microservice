@@ -20,6 +20,17 @@ export const createItemSchema = z.object({
         .max(500, "Description must not exceed 500 characters")
         .optional(),
 
+    imageUrl: z
+        .string()
+        .trim()
+        .url("Must be a valid URL")
+        .optional(),
+
+    displayOrder: z
+        .number()
+        .int()
+        .optional(),
+
     isActive: z
         .boolean()
         .optional(),

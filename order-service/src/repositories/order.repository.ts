@@ -1,17 +1,20 @@
-import { Order } from "../models/order.model.js";
+import { Order, type IOrderAddress } from "../models/order.model.js";
 
 export class OrderRepository {
     async create(data: {
         userId: string;
         branchId: string;
+        branchName: string;
         pickupSlot: {
             date: string;
             time: string;
         };
+        pickupAddress: IOrderAddress;
         deliverySlot: {
             date: string;
             time: string;
         };
+        deliveryAddress: IOrderAddress;
         subtotal: number;
         discount: number;
         total: number;

@@ -16,6 +16,8 @@ import {
     getPagination,
 } from "../../infrastructure/http/pagination.js";
 
+import { validateImageFile } from "../../infrastructure/upload/validate-image.js";
+
 import {
     sendSuccess,
 } from "../../infrastructure/http/api-response.js";
@@ -229,6 +231,50 @@ export class ItemController {
                 200,
                 undefined,
                 "Item deleted successfully"
+            );
+        } catch (error) {
+            next(error);
+        }
+    }
+
+    async uploadImage(
+        req: Request<ItemParams>,
+        res: Response,
+        next: NextFunction
+    ): Promise<void> {
+        try {
+            if (!req.file) {
+                res.status(400).json({
+                    message: "Image file is required",
+                });
+                return;
+            }
+
+            const isValidImage = await validateImageFile(
+                req.file.path
+            );
+
+            if (!isValidImage) {
+                res.status(400).json({
+                    message: "Invalid image file format",
+                });
+                return;
+            }
+
+            const imageUrl =
+                `${req.protocol}://${req.get("host")}/uploads/catalog/${req.file.filename}`;
+
+            const item = await this.itemService.updateItem(
+                req.params.itemId,
+                { imageUrl },
+                req.user!
+            );
+
+            sendSuccess(
+                res,
+                200,
+                { item },
+                "Item image uploaded successfully"
             );
         } catch (error) {
             next(error);

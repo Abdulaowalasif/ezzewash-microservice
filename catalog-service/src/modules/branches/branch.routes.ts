@@ -3,6 +3,7 @@ import { Router } from "express";
 import { BranchController, type BranchParams } from "./branch.controller.js";
 import { authenticate } from "../../infrastructure/http/auth.middleware.js";
 import { requireRoles } from "../../infrastructure/http/role.middleware.js";
+import { imageUpload } from "../../infrastructure/upload/multer.js";
 
 const router = Router();
 
@@ -32,6 +33,10 @@ router.patch<BranchParams>("/:branchId/status", authenticate, requireRoles("SUPE
 
 router.delete<BranchParams>("/:branchId", authenticate, requireRoles("SUPER_ADMIN"), (req, res, next) => {
     void branchController.deleteBranch(req, res, next);
+});
+
+router.post<BranchParams>("/:branchId/image", authenticate, requireRoles("SUPER_ADMIN"), imageUpload.single("image"), (req, res, next) => {
+    void branchController.uploadImage(req, res, next);
 });
 
 export default router;

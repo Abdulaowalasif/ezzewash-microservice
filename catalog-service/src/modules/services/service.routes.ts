@@ -7,6 +7,7 @@ import {
 } from "./service.controller.js";
 
 import { authenticate } from "../../infrastructure/http/auth.middleware.js";
+import { imageUpload } from "../../infrastructure/upload/multer.js";
 
 const router = Router();
 
@@ -82,6 +83,20 @@ router.delete<ServiceParams>(
     authenticate,
     (req, res, next) => {
         void serviceController.deleteService(
+            req,
+            res,
+            next
+        );
+    }
+);
+
+// Upload image — AUTHENTICATED
+router.post<ServiceParams>(
+    "/:serviceId/image",
+    authenticate,
+    imageUpload.single("image"),
+    (req, res, next) => {
+        void serviceController.uploadImage(
             req,
             res,
             next

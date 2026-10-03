@@ -56,8 +56,20 @@ export class OrderService {
         }
 
         const orderItems = [];
+        const serviceCache = new Map<string, string>();
 
         for (const item of data.items) {
+            let serviceName = serviceCache.get(item.serviceId);
+            
+            if (!serviceName) {
+                const service = await catalogClient.getService(item.serviceId);
+                if (!service) {
+                    throw new AppError(400, "Service not found");
+                }
+                serviceName = service.name;
+                serviceCache.set(item.serviceId, serviceName);
+            }
+
             const serviceItems =
                 await catalogClient.getServiceItems(
                     item.serviceId
@@ -82,7 +94,9 @@ export class OrderService {
 
             orderItems.push({
                 serviceId: item.serviceId,
+                serviceName,
                 itemId: item.itemId,
+                itemName: serviceItem.itemId.name,
                 quantity: item.quantity,
                 unitPrice: serviceItem.price,
                 totalPrice,
@@ -119,8 +133,11 @@ export class OrderService {
                 await orderRepository.create({
                     userId,
                     branchId: data.branchId,
+                    branchName: branch.name,
                     pickupSlot: data.pickupSlot,
+                    pickupAddress: data.pickupAddress,
                     deliverySlot: data.deliverySlot,
+                    deliveryAddress: data.deliveryAddress,
                     subtotal,
                     discount: 0,
                     total: subtotal,

@@ -58,6 +58,12 @@ export const createBranchSchema = z.object({
         .max(500)
         .optional(),
 
+    imageUrl: z
+        .string()
+        .trim()
+        .url("Must be a valid URL")
+        .optional(),
+
     address: addressSchema,
 
     phone: z

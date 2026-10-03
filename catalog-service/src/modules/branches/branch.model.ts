@@ -9,6 +9,7 @@ export interface IBranch extends Document {
     name: string;
     code: string;
     description?: string;
+    imageUrl?: string;
 
     address: {
         addressLine1: string;
@@ -53,6 +54,11 @@ const branchSchema =
                 type: String,
                 trim: true,
                 maxlength: 500,
+            },
+
+            imageUrl: {
+                type: String,
+                trim: true,
             },
 
             address: {

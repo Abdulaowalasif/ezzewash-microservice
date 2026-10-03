@@ -18,6 +18,8 @@ public record NotificationResponse(
         String referenceId,
         String failureReason,
         LocalDateTime sentAt,
+        boolean isRead,
+        LocalDateTime readAt,
         LocalDateTime createdAt,
         LocalDateTime updatedAt
 ) {
